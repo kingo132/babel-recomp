@@ -1,3 +1,54 @@
+# 盖亚幻想记 · Pixel 9 / FlipPad fork
+
+Current release: **0.3.1**, Android 17 / API 37, ARM64. The default Android
+build is the Japanese-based Simplified Chinese V1 edition, package
+`local.gaia.flippad.cn`; future updates retain that package and its saves.
+The app label is simply **盖亚幻想记**. Select opens the Chinese assistant,
+whose title includes the installed version.
+
+This fork adds portrait world rendering, the curved FlipPad safe edge, six
+manual save slots plus a separate suspend slot, integer pixel scaling,
+xBRZ filters, game-speed controls with a separate music clock, adaptive and
+monochrome launcher icons, and Android 17 Back/insets handling. Original
+224-line game content remains authoritative. Unsupported display modes
+retain their original window. The runtime is currently interpreter-only.
+
+**No ROM, ROM-bearing APK, personal save, or signing key is published.**
+Builds require the player's own exact supported ROM; see `rom_identity_cn.txt`.
+A USA development build is still available with `-PusaBuild`, but its saves
+are incompatible with the Japanese Chinese edition. Do not install both
+editions under the same package or copy instant saves between them.
+
+Build with JDK 17, SDK/Build Tools 37, NDK 28.2.13676358 and CMake 3.31.6:
+
+```sh
+./android/gradlew -p android assembleRelease -PgaiaRom=/path/to/chinese-game.sfc
+```
+
+Omit `gaiaRom` for a ROM-free build and place your ROM at `rom.sfc` in the
+app's external files directory before launch. Gradle uses a Sync task so a
+ROM-free build removes a private ROM left by an earlier build.
+
+See [FlipPad instructions](FlipPad-说明.txt), [version history](CHANGELOG-FlipPad.txt),
+and the `Android 17` workflow. Preserved source archives were imported as
+historical commits and tagged; import commit dates are the actual import
+dates, not reconstructed past timestamps.
+
+Validation: built and installed on a Pixel 9 running Android 17; existing
+Chinese saves were byte-identical across the 0.3.1 update; adaptive and
+monochrome drawables were read and rendered by Android; a system Back gesture
+closed the assistant; integer pixels, dialogue, audio resume and early Chinese
+story/save-load checks were exercised in prior versions. No full playthrough,
+all-map coverage, old-device coverage or long-run stability claim is made.
+16 KB APK alignment is checked statically; a 16 KB-page device was not tested.
+
+The original licenses and third-party notices are retained, including the
+xBRZ headers and `src/flippad/COPYING.xBRZ`.
+
+---
+
+## Upstream documentation
+
 # Babel Recomp — Illusion of Gaia
 
 A native PC and console port of **Illusion of Gaia** (SNES, USA) built on a

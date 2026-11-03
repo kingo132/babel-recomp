@@ -1,0 +1,36 @@
+name: Android 17
+on:
+  workflow_dispatch:
+  push:
+    branches: [pixel9-flippad]
+concurrency:
+  group: android17-${{ github.ref }}
+  cancel-in-progress: true
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@v3
+      - name: Install Android tools
+        run: sdkmanager 'platforms;android-37.0' 'build-tools;37.0.0' 'ndk;28.2.13676358' 'cmake;3.31.6'
+      - name: Build without private game files
+        run: ./android/gradlew -p android assembleRelease --no-daemon
+      - name: Verify private files are absent
+        run: |
+          python3 - <<'PY'
+          from zipfile import ZipFile
+          from pathlib import Path
+          apk=Path('android/app/build/outputs/apk/release/app-release.apk')
+          with ZipFile(apk) as z:
+              private=[n for n in z.namelist() if n.lower().endswith(('.sfc','.smc','.sav','.srm','.keystore','.jks'))]
+              assert not private, private
+          print('ROM-free source build verified; APK is not published.')
+          PY

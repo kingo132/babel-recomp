@@ -29,6 +29,7 @@ public class BabelActivity extends SDLActivity implements InputManager.InputDevi
     final Handler ui=new Handler(Looper.getMainLooper());
     InputManager inputs;
     boolean flipPad,controller,assistant,hatUp,hatDown; int tab,held,hat,lastMenuKey=-1,lastHat;
+    android.window.OnBackInvokedCallback backCallback;
     float speed=2,zoom; int filter; boolean[] cheats=new boolean[3];
     boolean[] shoulders=new boolean[4];
     final float[] speeds={.5f,1,1.5f,2,3,4};
@@ -50,13 +51,17 @@ public class BabelActivity extends SDLActivity implements InputManager.InputDevi
         root.addOnLayoutChangeListener((v,l,t,r,b,ol,ot,or,ob)->layoutGame());
         root.setOnApplyWindowInsetsListener((v,insets)->{root.post(this::layoutGame);return insets;});
         notice=new TextView(this);notice.setTextColor(Color.WHITE);notice.setTextSize(13);notice.setPadding(dp(10),dp(7),dp(10),dp(7));notice.setBackground(bg(0xe6203943));notice.setVisibility(View.GONE);root.addView(notice);
+        if(Build.VERSION.SDK_INT>=33){backCallback=()->onBackPressed();getOnBackInvokedDispatcher().registerOnBackInvokedCallback(android.window.OnBackInvokedDispatcher.PRIORITY_DEFAULT,backCallback);}
         inputs=(InputManager)getSystemService(INPUT_SERVICE);inputs.registerInputDeviceListener(this,ui);scanControllers();root.post(this::layoutGame);immersive();
     }
-    void immersive(){getWindow().getDecorView().setSystemUiVisibility(5894|1024|512);}
+    void immersive(){
+        if(Build.VERSION.SDK_INT>=30){android.view.WindowInsetsController c=getWindow().getInsetsController();if(c!=null){c.setSystemBarsBehavior(android.view.WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE);c.hide(WindowInsets.Type.statusBars()|WindowInsets.Type.navigationBars());}}
+        else getWindow().getDecorView().setSystemUiVisibility(5894|1024|512);
+    }
     @Override public void onWindowFocusChanged(boolean focus){super.onWindowFocusChanged(focus);if(root==null)return;if(focus)immersive();else clearButtons();}
     @Override public void setOrientationBis(int w,int h,boolean resizable,String hint){setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);}
     @Override protected void onPause(){if(!mBrokenLibraries){clearButtons();nativeSuspend();}super.onPause();}
-    @Override protected void onDestroy(){if(inputs!=null)inputs.unregisterInputDeviceListener(this);super.onDestroy();}
+    @Override protected void onDestroy(){if(Build.VERSION.SDK_INT>=33&&backCallback!=null)getOnBackInvokedDispatcher().unregisterOnBackInvokedCallback(backCallback);if(inputs!=null)inputs.unregisterInputDeviceListener(this);super.onDestroy();}
     @Override public void onBackPressed(){if(assistant)hideAssistant();else showAssistant();}
     public void onInputDeviceAdded(int id){scanControllers();}
     public void onInputDeviceChanged(int id){scanControllers();}

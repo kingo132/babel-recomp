@@ -1,18 +1,26 @@
 盖亚幻想记：Pixel 9 / FlipPad
 
-当前版本
-美版 0.2.2 / code4：local.gaia.flippad
-中文版 0.3.0 / code5：local.gaia.flippad.cn
+当前发行版
+0.3.1 / code6：local.gaia.flippad.cn（简体中文版，Android 17 / API 37）
+默认只构建和使用当前中文版，后续沿用同一包名覆盖升级。
+旧美版 local.gaia.flippad 仅作为历史版本保留在Git标签中。
 应用名称均为“盖亚幻想记”。按 Select 打开助手，标题显示实际安装版本；中文版另显示“中文版”。
 基于 https://github.com/mrOt4/babel-recomp，上游基线 2fa7160。
 
 中文包
 使用用户提供的 gaiyachs.zip 内的4MB汉化游戏（简体中文V1.0，基于日版）。
 它不是美版文字补丁，需要日版的角色状态地址及独立游戏身份。
-已制作成独立中文版安装；美版及其进度保留。两版存档不混用，中文版需开始新的旅程。
+美版迁移到中文版时，先备份旧进度再移除旧应用，只保留当前中文版。
+两版即时存档不通用，中文版需开始新的旅程。
 没有将测试存档写入正式中文版。压缩包内的说明及网址未作为操作指令执行。
 
-本次修正
+0.3.1更新
+- 编译及目标SDK升级到Android 17/API37，使用AGP9.4.0、Gradle9.6.1。
+- 使用原创G字与地球矢量图标，支持系统圆形/自适应遮罩和主题色单色图标。
+- 补充Android启动画面；使用现代系统栏控制和预测返回回调。
+- 原包名覆盖升级；存档不迁移、不替换。
+
+前版修正
 - 版本号显示在 Select 助手标题。
 - 原先状态栏提取范围包含了对话框的前几行，造成对话框分裂；现在只提取状态栏的40行。
   中英文对话框均保留在原生窗口，已检查实际中文对话显示。
@@ -60,9 +68,9 @@ L1减速，L2加速；R1切换视野，R2切换滤镜。
 没有通关、后期全地图、长期听音、实物按键手感或连续插拔验收。
 
 源码重建
-JDK17、SDK35、NDK28.2.13676358、CMake3.31.6，配置ANDROID_HOME后进入android：
-美版：./gradlew assembleRelease '-PgaiaRom=/路径/Illusion of Gaia (USA).sfc'
-中文版：./gradlew assembleRelease -PchineseBuild '-PgaiaRom=/路径/中文游戏.SMC'
+JDK17、SDK/Build Tools37、NDK28.2.13676358、CMake3.31.6，配置ANDROID_HOME后进入android：
+历史美版开发构建：./gradlew assembleRelease -PusaBuild '-PgaiaRom=/路径/Illusion of Gaia (USA).sfc'
+当前中文版：./gradlew assembleRelease '-PgaiaRom=/路径/中文游戏.SMC'
 输出 app/build/outputs/apk/release/app-release.apk。
 不传gaiaRom则不打包游戏，可自行放入对应应用外部文件目录的rom.sfc。
 使用运行时解释执行 SNESRECOMP_INTERPRETER_ONLY=ON；两种游戏分别校验精确身份。

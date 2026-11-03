@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Base application theme. -->
     <style name="AppTheme" parent="android:Theme.NoTitleBar.Fullscreen">
-        <!-- Customize your theme here. -->
+        <item name="android:windowBackground">#071827</item>
+        <item name="android:colorAccent">#F4CB73</item>
+        <item name="android:windowLightStatusBar">false</item>
     </style>
 </resources>
