@@ -14,6 +14,12 @@
 #include <stdatomic.h>
 extern Snes *g_snes;
 enum { MAX_W=640,MAX_H=768 };
+/* The Japanese Chinese build retains the Japanese player-global layout. */
+#ifdef IOG_CHINESE_ROM
+#define IOG_PLAYER_ACTOR 0x9b8
+#else
+#define IOG_PLAYER_ACTOR 0x9aa
+#endif
 static uint32_t image[MAX_W*MAX_H], saved[MAX_W*MAX_H];
 static uint8_t depth[MAX_W*MAX_H], subdepth[MAX_W*MAX_H];
 static uint8_t colors[MAX_W*MAX_H], subcolors[MAX_W*MAX_H], sources[MAX_W*MAX_H];
@@ -164,7 +170,7 @@ const uint32_t *IogPortraitCompose(const uint32_t*native,int nw,int nh,int dw,in
  int w=(int)ceilf(dw/scale),h=(int)ceilf(dh/scale);
  if(w<128)w=128;if(w>MAX_W)w=MAX_W;if(h<224)h=224;if(h>MAX_H)h=MAX_H;
  int left=(w-256)/2,top=(h-224)/2;
- int map=word(0x644),play=word(0x9aa)!=0;
+ int map=word(0x644),play=word(IOG_PLAYER_ACTOR)!=0;
  int world=play&&map!=0xff&&PPU_mode(g_ppu)==1&&word(0x692)>=256&&word(0x696)>=256;
  if(world && raster_valid && load_set(0)){
   int good2=load_set(1);int cx=word(0x68a)-left,cy=word(0x68e)-top;
@@ -197,7 +203,7 @@ const uint32_t *IogPortraitCompose(const uint32_t*native,int nw,int nh,int dw,in
   for(int y=0;y<224;y++){int dy=top+y;if(dy<0||dy>=h)continue;for(int x=0;x<256;x++){int dx=left+x;if(dx>=0&&dx<w)image[dy*w+dx]=native[y*256+x]&0xffffff;}}
   if(hud_active){
    int offset=0;
-   for(int y=0;y<48;y++)for(int x=0;x<256;x++){
+   for(int y=0;y<40;y++)for(int x=0;x<256;x++){
     int dx=left+x,dy=offset+y;
     if(dx>=0&&dx<w&&dy>=0&&dy<h&&(hud_pixels[y*256+x]>>24))image[dy*w+dx]=hud_pixels[y*256+x]&0xffffff;
    }
@@ -225,12 +231,12 @@ const uint32_t *IogPortraitCompose(const uint32_t*native,int nw,int nh,int dw,in
 void IogPortraitBegin(void){
  if(!g_ppu||!g_snes)return;
  PpuClearOverlayCaptures(g_ppu);hud_active=0;
- int play=word(0x9aa)!=0,map=word(0x644);
+ int play=word(IOG_PLAYER_ACTOR)!=0,map=word(0x644);
  const uint16_t*row=PpuRenderVram(g_ppu)+(PPU_bgTilemapAdr(g_ppu,2)&32767)+32;
  if(play&&map!=0xff&&(row[11]&1023)==0xef&&(row[20]&1023)==0xef&&(row[15]&1023)==0x1e){
   g_ppu->overlayRenderBuffer[kPpuOverlaySource_Bg3]=(uint8_t*)hud_pixels;
   g_ppu->overlayRenderPitch[kPpuOverlaySource_Bg3]=256*4;
-  PpuSetOverlayCapture(g_ppu,kPpuOverlaySource_Bg3,0,0,256,48,kPpuOverlayFlag_RemoveFromGame);hud_active=1;
+  PpuSetOverlayCapture(g_ppu,kPpuOverlaySource_Bg3,0,0,256,40,kPpuOverlayFlag_RemoveFromGame);hud_active=1;
  }
 }
 

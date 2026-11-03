@@ -93,6 +93,7 @@ static void IogPollLanguageHotkey(void)
 
 static void IogBeforeRunFrame(void)
 {
+#ifndef IOG_CHINESE_ROM
     static int initialized;
     if (!initialized) {
         initialized = 1;
@@ -100,6 +101,7 @@ static void IogBeforeRunFrame(void)
     }
     IogPollLanguageHotkey();
     IogI18nFrame();
+#endif
     IogWidescreenBeforeFrame();
 }
 
@@ -110,8 +112,10 @@ static void IogEndSimFrame(const uint8_t *field, unsigned number)
 {
     (void)field;
     (void)number;
+#ifndef IOG_CHINESE_ROM
     IogCompanionGrabMenu();
     IogInventoryOverlay();
+#endif
 }
 
 void IogSettingsInstall(void);   /* iog_settings.c */

@@ -3643,6 +3643,11 @@ int snesrecomp_desktop_main(const SnesDesktopHostGame *game, int argc, char **ar
 
   SDL_SetHint(SDL_HINT_JOYSTICK_ALLOW_BACKGROUND_EVENTS, "1");
 
+  // Pixel 9 AAudio streams can return DISCONNECTED (-895) after another
+  // app takes the route. OpenSL ES restores playback across these switches.
+#ifdef __ANDROID__
+  SDL_SetHint(SDL_HINT_AUDIO_DRIVER, "openslES,AAudio");
+#endif
   // set up SDL
   SDL_SetMainReady();
   /* Return convention flipped in SDL3 (0 == success became true == success),

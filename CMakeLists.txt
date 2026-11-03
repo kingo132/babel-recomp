@@ -86,7 +86,12 @@ endif()
 # turns it into snesrecomp_rom_identity.h (SNESRECOMP_ROM_EXPECTED_SHA256 and
 # friends) for src/main.c, and tools/regen.sh, scripts/package_release.sh and
 # the release workflow read the same file. A revision bump is one edit there.
-snesrecomp_rom_identity(IllusionOfGaiaUsaSNESRecomp ${CMAKE_SOURCE_DIR}/rom_identity.txt)
+option(IOG_CHINESE_ROM "Use the user-supplied Japanese Chinese V1 ROM" OFF)
+if(IOG_CHINESE_ROM)
+    target_compile_definitions(IllusionOfGaiaUsaSNESRecomp PRIVATE IOG_CHINESE_ROM=1)
+endif()
+set(IOG_ROM_IDENTITY_FILE "${CMAKE_SOURCE_DIR}/rom_identity.txt" CACHE FILEPATH "Exact supported ROM identity")
+snesrecomp_rom_identity(IllusionOfGaiaUsaSNESRecomp ${IOG_ROM_IDENTITY_FILE})
 
 # The game ships as "babel-recomp" (babel-recomp, babel-recomp.exe,
 # babel-recomp.nro); the CMake target keeps its internal name. The Vita's is

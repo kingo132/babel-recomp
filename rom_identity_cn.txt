@@ -1,0 +1,26 @@
+# ROM identity for Illusion Of Gaia Usa — the single source of truth.
+#
+# Read by three consumers, so a revision change is made once, here:
+#   - the build   (CMake generates snesrecomp_rom_identity.h from this file)
+#   - tools/regen.sh
+#   - .github/workflows/release.yml
+#
+# Format is `key = value`, one per line; `#` starts a comment. Values may be
+# quoted. Leaving a digest empty means the build cannot verify a ROM it is
+# handed — it will say so rather than accept it.
+
+display_name = Gaia Chinese V1
+rom_file        = rom.sfc
+# Every digest of the bare image (copier header stripped), so the Retro
+# catalog can take a submission's identity from this file rather than ask
+# the submitter to hash the ROM again. The build verifies on crc32/sha256.
+expected_crc32 = 9e264774
+expected_md5 = 3d3a6c69d82d23aaf8648ccd8772478c
+expected_sha1 = f5c96d5eabfd1999288397e537386b28e64a13ca
+expected_sha256 = 45aaf14118160f304a632d5a6aa1fbe12f4baecb8828d5f9cf2450952279b3e4
+rom_size = 4194304
+mapping         = hirom
+region = JPN
+# What a mod package's [[target]] game_id must name to apply to this title
+# (snesrecomp/docs/MOD_PACKAGES.md). Stable across revisions on purpose.
+game_id = gaia-cn-v1

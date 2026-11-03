@@ -99,9 +99,10 @@ public class BabelActivity extends SDLActivity implements InputManager.InputDevi
     void label(String text){TextView t=new TextView(this);t.setText(text);t.setTextColor(0xffcbd9e5);t.setTextSize(13);t.setPadding(dp(4),dp(5),dp(4),dp(4));content.addView(t);}
     void showAssistant(){if(root==null)return;clearButtons();nativePauseGame(true);assistant=true;renderAssistant();}
     void hideAssistant(){if(card!=null)root.removeView(card);card=null;status=null;assistant=false;clearButtons();nativePauseGame(false);mSurface.requestFocus();immersive();}
+    String versionText(){try{return getPackageManager().getPackageInfo(getPackageName(),0).versionName+(getResources().getBoolean(R.bool.chinese_rom)?" · 中文版":"");}catch(Exception e){return "未知版本";}}
     void renderAssistant(){
         if(card!=null)root.removeView(card);card=new LinearLayout(this);card.setOrientation(1);card.setPadding(dp(8),dp(7),dp(8),dp(7));card.setBackground(bg(0xf51a2937));root.addView(card);
-        TextView title=new TextView(this);title.setText("游戏助手");title.setTextSize(19);title.setTextColor(Color.WHITE);title.setPadding(dp(4),0,0,dp(4));card.addView(title);
+        TextView title=new TextView(this);title.setText("游戏助手 · v"+versionText());title.setTextSize(19);title.setTextColor(Color.WHITE);title.setPadding(dp(4),0,0,dp(4));card.addView(title);
         LinearLayout tabs=new LinearLayout(this);card.addView(tabs);String[] names={"存档","速度","画面","辅助"};
         for(int i=0;i<4;i++){final int n=i;Button b=new Button(this);b.setText(names[i]);style(b,i==tab);LinearLayout.LayoutParams q=new LinearLayout.LayoutParams(0,dp(39),1);q.setMargins(dp(2),0,dp(2),dp(3));tabs.addView(b,q);b.setOnClickListener(v->{tab=n;renderAssistant();});}
         content=new LinearLayout(this);content.setOrientation(1);card.addView(content,new LinearLayout.LayoutParams(-1,0,1));
@@ -125,7 +126,7 @@ public class BabelActivity extends SDLActivity implements InputManager.InputDevi
     }
     void setZoom(float z){zoom=z;remember();renderAssistant();feedback(z==0?"整数适配 / 满宽":"视野 "+z+"×");}
     void buildTools(){
-        for(int i=0;i<3;i++){int n=i;CheckBox b=new CheckBox(this);b.setText(new String[]{"生命保护","暗黑力量 DP 99","能力增强"}[i]);b.setTextColor(Color.WHITE);b.setTextSize(14);b.setChecked(cheats[i]);content.addView(b,new LinearLayout.LayoutParams(-1,dp(37)));b.setOnCheckedChangeListener((v,on)->{if(nativeAction(3,(n<<1)|(on?1:0))==1){cheats[n]=on;remember();feedback(on?"已开启":"已关闭");}});}
+        if(!getResources().getBoolean(R.bool.chinese_rom))for(int i=0;i<3;i++){int n=i;CheckBox b=new CheckBox(this);b.setText(new String[]{"生命保护","暗黑力量 DP 99","能力增强"}[i]);b.setTextColor(Color.WHITE);b.setTextSize(14);b.setChecked(cheats[i]);content.addView(b,new LinearLayout.LayoutParams(-1,dp(37)));b.setOnCheckedChangeListener((v,on)->{if(nativeAction(3,(n<<1)|(on?1:0))==1){cheats[n]=on;remember();feedback(on?"已开启":"已关闭");}});}
         LinearLayout menu=row();action(menu,"物品 / 装备",()->{hideAssistant();nativePulse(4);});
         LinearLayout shoulder=row();action(shoulder,"原版 L",()->{hideAssistant();nativePulse(1024);});action(shoulder,"原版 R",()->{hideAssistant();nativePulse(2048);});
         LinearLayout reset=row();action(reset,"重新开始",()->new AlertDialog.Builder(this).setMessage("返回游戏标题？手动存档会保留。").setPositiveButton("返回标题",(d,w)->{nativeAction(4,0);hideAssistant();}).setNegativeButton("取消",null).show());
