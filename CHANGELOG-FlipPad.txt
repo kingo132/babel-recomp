@@ -1,5 +1,12 @@
 FlipPad source version history
 
+0.3.3 — 2026-11-03
+Do not advance HDMA during the PPU's non-visible line-zero initialization.
+This restores the last scanline of Chinese inventory glyphs and aligns raster
+windows with an independent native renderer. Keep Android's FlipPad input under
+the platform driver by disabling SDL raw HIDAPI access, preserving system diamond
+navigation. Physical-main-display regressions use copies of user progress.
+
 0.3.2 — 2026-11-03
 Shared display rules with the two Quintet hosts: OAM-first opaque selection,
 9-bit OBJ name-bank and row/column wrapping, windows and scroll unwrapping.

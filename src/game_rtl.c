@@ -203,8 +203,12 @@ void GameDrawPpuFrame(void)
         /* HDMA runs in the H-blank BEFORE each visible line, and the raster
          * IRQ then selects the register set that line is drawn with — so
          * both must precede ppu_runLine for this line, not follow it. */
-        for (ch = 0; ch < 8; ch++)
-            SimpleHdma_DoLine(&hdma_chans[ch]);
+        /* Line zero initializes the PPU but is not a visible transfer slot.
+         * Advancing HDMA there consumes one extra row and clips the last
+         * scanline of the Chinese inventory glyphs (and shifts water effects). */
+        if (line > 0)
+            for (ch = 0; ch < 8; ch++)
+                SimpleHdma_DoLine(&hdma_chans[ch]);
         if (line == trigger) {
             g_snes->inIrq = true;
             cpu_push_interrupt_frame_at(&g_cpu, g_resume_pc);

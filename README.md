@@ -1,6 +1,6 @@
 # 盖亚幻想记 · Pixel 9 / FlipPad fork
 
-Current release: **0.3.2**, Android 17 / API 37, ARM64. The default Android
+Current release: **0.3.3**, Android 17 / API 37, ARM64. The default Android
 build is the Japanese-based Simplified Chinese V1 edition, package
 `local.gaia.flippad.cn`; future updates retain that package and its saves.
 The app label is simply **盖亚幻想记**. Select opens the Chinese assistant,
