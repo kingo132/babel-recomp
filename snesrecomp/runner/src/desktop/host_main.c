@@ -1,3 +1,8 @@
+#ifdef __ANDROID__
+extern int FlipPadSuspendPoll(void);
+extern int FlipPadResume(void);
+extern void FlipPadSuspendStop(void);
+#endif
 /*
  * host_main.c — the framework's desktop host. See host_main.h.
  *
@@ -1508,7 +1513,21 @@ static void DrawPpuFrameWithPerf(void) {
 
 /* Seat-0 input word the overlays navigate with — the same sources the guest
  * gets, minus the script (an overlay is a human facility). */
+#ifdef __ANDROID__
+static void FlipPadHostPoll(void) {
+  if (!FlipPadSuspendPoll()) return;
+  g_input_state = g_pad_buttons = 0;
+  for (int i = 0; i < 2; ++i) {
+    g_gamepad[i].modifiers = g_gamepad[i].axis_buttons = 0;
+    g_gamepad[i].last_axis_x = g_gamepad[i].last_axis_y = 0;
+    memset(g_gamepad[i].last_cmd, 0, sizeof(g_gamepad[i].last_cmd));
+  }
+}
+#endif
 static uint32 OverlayNavInputs(void) {
+#ifdef __ANDROID__
+  FlipPadHostPoll();
+#endif
 #if SNESRECOMP_TOUCH_PAD
   /* The on-screen pad shows while no controller is connected. */
   TouchPad_SetVisible(g_gamepad[0].joystick_id == -1 && g_gamepad[1].joystick_id == -1);
@@ -1544,6 +1563,7 @@ static bool HandleDeviceEvent(const SDL_Event *event) {
   case SDL_CONTROLLERDEVICEREMOVED:
     gi = GetGamepadInfo(SNESRECOMP_SDL_EVENT_DEVICE(*event));
     if (gi) {
+      g_pad_buttons &= ~(0xfffu << (gi->index * 12));
       memset(gi, 0, sizeof(GamepadInfo));
       gi->joystick_id = -1;
     }
@@ -1571,6 +1591,7 @@ static bool HandleDeviceEvent(const SDL_Event *event) {
   case SDL_JOYDEVICEREMOVED:
     gi = GetGamepadInfo(event->jdevice.which);
     if (gi && gi->raw_joystick) {
+      g_pad_buttons &= ~(0xfffu << (gi->index * 12));
       if (gi->joystick) SDL_JoystickClose(gi->joystick);
       memset(gi, 0, sizeof(GamepadInfo));
       gi->joystick_id = -1;
@@ -3889,6 +3910,9 @@ error_reading:;
 
   if (g_config.autosave)
     HandleCommand(kKeys_Load + 0, true);
+#ifdef __ANDROID__
+  if (FlipPadResume()) GameReset();
+#endif
 
   if (script_file)
     LoadScript(script_file);
@@ -3946,6 +3970,9 @@ error_reading:;
   host_report_breadcrumb("entering main loop");
 
   while (running) {
+#ifdef __ANDROID__
+    FlipPadHostPoll();
+#endif
     if (g_state_generation != RtlStateGeneration()) {
       ResetAudioTimeline();
       snes_rewind_shutdown();
@@ -4479,6 +4506,9 @@ error_reading:;
   if (g_blend) recomp_frame_blend_destroy(g_blend);
 #endif
 
+#ifdef __ANDROID__
+  FlipPadSuspendStop();
+#endif
   // clean sdl
   SetAudioPaused(true);
 #if SNESRECOMP_SDL3

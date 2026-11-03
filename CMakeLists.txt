@@ -74,7 +74,7 @@ set(IOG_SOURCES
 )
 if(ANDROID)
     # Android: the game is the "main" library SDL's activity loads.
-    add_library(IllusionOfGaiaUsaSNESRecomp SHARED ${IOG_SOURCES})
+    add_library(IllusionOfGaiaUsaSNESRecomp SHARED ${IOG_SOURCES} src/flippad_android.c)
 else()
     add_executable(IllusionOfGaiaUsaSNESRecomp ${IOG_SOURCES})
 endif()

@@ -77,7 +77,8 @@
         <meta-data android:name="SDL_ENV.SDL_ANDROID_TRAP_BACK_BUTTON" android:value="0"/>
          -->
 
-        <activity android:name="BabelActivity"
+        <activity android:name="com.mr0ta.babelrecomp.BabelActivity"
+            android:screenOrientation="portrait"
             android:label="@string/app_name"
             android:alwaysRetainTaskState="true"
             android:launchMode="singleInstance"

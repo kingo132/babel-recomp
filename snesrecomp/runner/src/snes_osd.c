@@ -289,19 +289,19 @@ void snes_osd_push(const char *msg, int duration_ms) {
 
 void snes_osd_push_slot_saved(int slot) {
     char buf[OSD_MAX_CHARS];
-    snprintf(buf, sizeof(buf), "Slot %d saved", slot);
+    snprintf(buf, sizeof(buf), "Slot %d saved", slot + 1);
     snes_osd_push(buf, 0);
 }
 
 void snes_osd_push_slot_loaded(int slot) {
     char buf[OSD_MAX_CHARS];
-    snprintf(buf, sizeof(buf), "Slot %d loaded", slot);
+    snprintf(buf, sizeof(buf), "Slot %d loaded", slot + 1);
     snes_osd_push(buf, 0);
 }
 
 void snes_osd_push_slot_empty(int slot) {
     char buf[OSD_MAX_CHARS];
-    snprintf(buf, sizeof(buf), "Slot %d empty", slot);
+    snprintf(buf, sizeof(buf), "Slot %d empty", slot + 1);
     snes_osd_push(buf, 0);
 }
 
