@@ -40,6 +40,7 @@
  */
 
 #include "game_rtl.h"
+#include "iog_portrait.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -216,6 +217,7 @@ void GameDrawPpuFrame(void)
             }
             trigger = g_snes->vIrqEnabled ? (int)g_snes->vTimer : -1;
         }
+        IogPortraitLine(line);
         ppu_runLine(g_ppu, line);
     }
 }

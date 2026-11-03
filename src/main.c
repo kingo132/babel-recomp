@@ -28,9 +28,14 @@
 #include "host_main.h"
 #include "game_rtl.h"
 #include "iog_widescreen.h"
+#include "iog_portrait.h"
+extern void IogPortraitBegin(void);
 #include "iog_inventory.h"
 #include "iog_i18n.h"
 #include "snes_osd.h"
+#include "snes/snes.h"
+#include "common_rtl.h"
+#include <stdlib.h>
 #include <stdio.h>
 #include "snesrecomp_rom_identity.h"  /* generated from rom_identity.txt */
 #include "desktop/config.h"
@@ -63,6 +68,9 @@ static void IogBeginSimFrame(unsigned number)
 {
     (void)number;
     IogWidescreenBeginFrame();
+#ifdef __ANDROID__
+    IogPortraitBegin();
+#endif
 }
 
 /* Ctrl+L: next language. Polled here because the language is a title
@@ -96,6 +104,7 @@ static void IogBeforeRunFrame(void)
 }
 
 #include "iog_companion.h"
+#include "iog_portrait.h"
 /* After a frame is rasterised: presentation added by mods. */
 static void IogEndSimFrame(const uint8_t *field, unsigned number)
 {
@@ -108,6 +117,9 @@ static void IogEndSimFrame(const uint8_t *field, unsigned number)
 void IogSettingsInstall(void);   /* iog_settings.c */
 static void IogAfterRunFrame(const SnesDesktopHostFrameStats *st) { (void)st; IogCompanionAfterFrame(); }
 
+#ifdef __ANDROID__
+static double IogPresentationHz(double refresh){return refresh>90?120:60;}
+#endif
 static const SnesDesktopHostGame kGameHost = {
     .display_name        = "Illusion Of Gaia Usa",
     .window_title        = "Babel Recomp",
@@ -119,6 +131,9 @@ static const SnesDesktopHostGame kGameHost = {
     .build_version       = SNES_GAME_VERSION,
     .game_info           = &kGameInfo,
     .num_players         = 1,
+#ifdef __ANDROID__
+    .presentation_hz     = IogPresentationHz,
+#endif
     /* Battery-backed SRAM shows the launcher's SAVES panel. Leave NULL for a
      * title without one. The path is exe-relative. */
     .sram_path           = "saves/save.srm",

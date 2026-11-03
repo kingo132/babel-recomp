@@ -57,6 +57,9 @@ endif()
 set(IOG_SOURCES
     ${SNESRECOMP_RUNNER_SOURCES}
     src/main.c
+    src/iog_portrait.c
+    src/flippad_filter.cpp
+    src/flippad/xbrz/xbrz.cpp
     src/host_contract.c
     src/game_rtl.c
     src/iog_widescreen.c

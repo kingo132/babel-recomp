@@ -1,7 +1,9 @@
+#include <stdint.h>
 #ifdef __ANDROID__
 extern int FlipPadSuspendPoll(void);
 extern int FlipPadResume(void);
 extern void FlipPadSuspendStop(void);
+extern uint32_t FlipPadButtons(void);
 #endif
 /*
  * host_main.c — the framework's desktop host. See host_main.h.
@@ -438,6 +440,15 @@ static GamepadInfo g_gamepad[2];
 
 extern Snes *g_snes;
 
+#ifdef __ANDROID__
+void snesrecomp_desktop_set_speed(double speed) {
+  extern void RtlSetMusicGameSpeed(double speed);
+  if(speed<0.5)speed=0.5;if(speed>4)speed=4;
+  g_simulation_hz=SNES_HOST_NTSC_HZ*speed;
+  RtlSetMusicGameSpeed(speed);g_reset_clock=true;
+}
+void snesrecomp_desktop_set_paused(int pause) {g_paused=pause!=0;}
+#endif
 void snesrecomp_desktop_set_widescreen(int enabled) {
   g_config.widescreen = enabled != 0;
   WriteConfigFile(g_active_config_file);
@@ -1532,7 +1543,11 @@ static uint32 OverlayNavInputs(void) {
   /* The on-screen pad shows while no controller is connected. */
   TouchPad_SetVisible(g_gamepad[0].joystick_id == -1 && g_gamepad[1].joystick_id == -1);
   if (TouchPad_TakeMenuTap()) g_settings_menu_hotkey = 1;
-  return g_input_state | g_pad_buttons | g_gamepad[0].axis_buttons | TouchPad_Buttons();
+  return g_input_state | g_pad_buttons | g_gamepad[0].axis_buttons | TouchPad_Buttons()
+#ifdef __ANDROID__
+      | FlipPadButtons()
+#endif
+      ;
 #else
   return g_input_state | g_pad_buttons | g_gamepad[0].axis_buttons;
 #endif
@@ -4373,6 +4388,9 @@ error_reading:;
      * iteration that opened a panel consumed a script frame the guest never
      * saw, and every later scripted press landed a frame early. */
     inputs |= TickScript();
+#ifdef __ANDROID__
+    inputs |= FlipPadButtons();
+#endif
     inputs |= debug_server_get_controller_inputs();
     g_profile_frame = frameCtr + 1;
     if (profile_requested && !g_profile && g_profile_frame >= profile_first) {

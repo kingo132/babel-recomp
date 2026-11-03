@@ -258,15 +258,39 @@ static int16 g_audio_last_output_l;
 static int16 g_audio_last_output_r;
 static void rtl_sync_apu_frame_boundary(void);
 
+static double s_music_game_speed=1.0;
+static uint64_t s_music_raw_anchor,s_music_scaled_anchor,s_music_last_raw,s_music_last_scaled;
+static uint64_t s_music_generation;
+static int s_music_rebase=1,s_music_seen;
+void RtlSetMusicGameSpeed(double speed){if(speed!=s_music_game_speed){s_music_game_speed=speed;s_music_rebase=1;}}
+static uint64_t rtl_music_cycle(uint64_t raw){
+ uint64_t generation=RtlStateGeneration();
+ if(!s_music_seen){
+  s_music_raw_anchor=raw;s_music_scaled_anchor=raw;s_music_last_scaled=raw;
+  s_music_generation=generation;s_music_rebase=0;s_music_seen=1;
+ }else if(raw<s_music_last_raw||generation!=s_music_generation){
+  s_music_raw_anchor=raw;s_music_scaled_anchor=s_music_last_scaled;
+  s_music_generation=generation;s_music_rebase=0;
+  if(g_snes&&g_snes->apu){
+   Apu *apu=g_snes->apu;apu_clearPortQueue(apu);
+   apu->portGuestAnchor=s_music_last_scaled;apu->portTargetAnchor=apu->portClock;
+   apu->portTimeValid=true;
+  }
+ }else if(s_music_rebase){
+  s_music_raw_anchor=raw;s_music_scaled_anchor=s_music_last_scaled;s_music_rebase=0;
+ }
+ s_music_last_raw=raw;
+ s_music_last_scaled=s_music_scaled_anchor+(uint64_t)((raw-s_music_raw_anchor)/s_music_game_speed);
+ return s_music_last_scaled;
+}
 static uint64_t rtl_apu_guest_cycle(void) {
   if (g_extended_frame_timing)
-    return rtl_apu_clock_now(&g_apu_frame_clock, g_cpu.master_cycles);
+    return rtl_music_cycle(rtl_apu_clock_now(&g_apu_frame_clock, g_cpu.master_cycles));
   uint64_t within = g_cpu.master_cycles - g_apu_frame_start_master;
   if (within >= RTL_MASTER_CYCLES_PER_FRAME)
     within = RTL_MASTER_CYCLES_PER_FRAME - 1;
-  return (uint64_t)snes_frame_counter * RTL_APU_CYCLES_PER_FRAME +
-         within * RTL_APU_CYCLES_PER_FRAME /
-             RTL_MASTER_CYCLES_PER_FRAME;
+  return rtl_music_cycle((uint64_t)snes_frame_counter * RTL_APU_CYCLES_PER_FRAME +
+         within * RTL_APU_CYCLES_PER_FRAME / RTL_MASTER_CYCLES_PER_FRAME);
 }
 // $420D bit 0 (FastROM / MEMSEL): 1 => $80-$FF:$8000-$FFFF code runs fast (6
 // master clocks/access) instead of slow (8). Tracked here so emitted blocks in
@@ -2002,6 +2026,7 @@ static void rtl_sync_apu_frame_boundary(void) {
   uint64_t boundary = g_extended_frame_timing
       ? rtl_apu_clock_finish(&g_apu_frame_clock, g_cpu.master_cycles)
       : (uint64_t)snes_frame_counter * RTL_APU_CYCLES_PER_FRAME;
+  boundary=rtl_music_cycle(boundary);
   bool synced = apu_runToGuestCycle(g_snes->apu, boundary,
                                     1u << 20);
   audio_trace_on_guest_sync(1, g_snes->apu->portClock - before);

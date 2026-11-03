@@ -552,11 +552,24 @@ static void OpenGLRenderer_BeginDraw(int width, int height, uint8 **pixels, int 
   *pitch = width * 4;
 }
 
+#ifdef __ANDROID__
+extern const uint32_t *IogPortraitCompose(const uint32_t*,int,int,int,int,int*,int*);
+extern int IogPortraitFilter(void);
+extern float IogPortraitDrawScale(int);
+extern const uint32_t *FlipPadFilter(const uint32_t*,int,int,int,int*,int*);
+#endif
 static void OpenGLRenderer_EndDraw(void) {
   int drawable_width, drawable_height;
 
   snesrecomp_sdl_get_drawable_size(g_window, &drawable_width, &drawable_height);
 
+#ifdef __ANDROID__
+  int original_w=g_draw_width,original_h=g_draw_height;
+  uint8_t *original_buffer=g_screen_buffer;
+  int pw=0,ph=0;
+  const uint32_t *portrait=IogPortraitCompose((uint32_t*)g_screen_buffer,g_draw_width,g_draw_height,drawable_width,drawable_height,&pw,&ph);
+  if(portrait){portrait=FlipPadFilter(portrait,pw,ph,IogPortraitFilter(),&pw,&ph);g_draw_width=pw;g_draw_height=ph;g_screen_buffer=(uint8_t*)portrait;}
+#endif
   /* The framework's own aspect maths, rather than a per-game copy: it knows
    * all three pixel aspects the config offers, and centres on both axes. */
   SnesDisplayViewport viewport;
@@ -566,6 +579,14 @@ static void OpenGLRenderer_EndDraw(void) {
       (g_config.ignore_aspect_ratio && !g_present_square_pixels) || g_present_square_pixels == 2,
       false, &viewport);
 
+#ifdef __ANDROID__
+  if(portrait){
+    int f=IogPortraitFilter();f=(f==2||f==3)?f:1;
+    float s=IogPortraitDrawScale(drawable_width)/f;
+    viewport.width=(int)(g_draw_width*s+.5f);viewport.height=(int)(g_draw_height*s+.5f);
+    viewport.x=(drawable_width-viewport.width)/2;viewport.y=drawable_height-viewport.height;
+  }
+#endif
   glBindTexture(GL_TEXTURE_2D, g_texture.gl_texture);
   SetFrameSwizzle();
   if (g_draw_width == g_texture.width && g_draw_height == g_texture.height) {
@@ -584,6 +605,9 @@ static void OpenGLRenderer_EndDraw(void) {
     /* HD scaling (present_filter.h). Smooth only redraws the 1x art: a 4x
      * frame (HD pack, Mode 7 at 4x) is already high resolution. */
     int mode = PresentFilter_Get();
+#ifdef __ANDROID__
+    if(portrait)mode=kPresentFilter_Config;
+#endif
     if (mode == kPresentFilter_Smooth && (g_draw_width > 640 || !g_smooth_program))
       mode = kPresentFilter_Sharp;
     if (mode == kPresentFilter_Sharp && !g_sharp_program)
@@ -598,6 +622,9 @@ static void OpenGLRenderer_EndDraw(void) {
     int filter = mode == kPresentFilter_Sharp ? GL_LINEAR :
                  mode == kPresentFilter_Smooth ? GL_NEAREST :
                  g_config.linear_filtering ? GL_LINEAR : GL_NEAREST;
+#ifdef __ANDROID__
+    if(portrait)filter=IogPortraitFilter()==1?GL_LINEAR:GL_NEAREST;
+#endif
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filter);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, filter);
     glBindVertexArray(g_VAO);
@@ -623,6 +650,9 @@ static void OpenGLRenderer_EndDraw(void) {
   }
 
   SDL_GL_SwapWindow(g_window);
+#ifdef __ANDROID__
+  g_draw_width=original_w;g_draw_height=original_h;g_screen_buffer=original_buffer;
+#endif
 }
 
 static const struct RendererFuncs kOpenGLRendererFuncs = {
