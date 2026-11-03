@@ -1,5 +1,15 @@
 FlipPad source version history
 
+0.3.2 — 2026-11-03
+Shared display rules with the two Quintet hosts: OAM-first opaque selection,
+9-bit OBJ name-bank and row/column wrapping, windows and scroll unwrapping.
+Read dynamic actor source graphics through the game's streaming table rather
+than interpreting their source tile IDs as static VRAM; restore depth buckets
+and palette flashing without changing actor scripts or offscreen game logic.
+Qualify full maps against the native VRAM ring, reset per-frame raster validity,
+and retain the top HUD on native-view fallback. Add opt-in desktop reconstruction
+audits and shared-rule CI tests. Existing CN package and progress are preserved.
+
 0.3.1 — 2026-11-03
 Android 17/API37 target and build chain; adaptive/round/monochrome original
 vector launcher artwork; system splash and modern Back/insets integration.

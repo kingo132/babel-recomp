@@ -1,6 +1,6 @@
 # 盖亚幻想记 · Pixel 9 / FlipPad fork
 
-Current release: **0.3.1**, Android 17 / API 37, ARM64. The default Android
+Current release: **0.3.2**, Android 17 / API 37, ARM64. The default Android
 build is the Japanese-based Simplified Chinese V1 edition, package
 `local.gaia.flippad.cn`; future updates retain that package and its saves.
 The app label is simply **盖亚幻想记**. Select opens the Chinese assistant,
@@ -445,3 +445,18 @@ this software: everything here is free.
 
 *Illusion of Gaia* is a trademark of its respective owners. This project is
 not affiliated with or endorsed by Nintendo, Square Enix or Quintet.
+
+### 0.3.2 presentation update
+
+The three FlipPad hosts share camera, window, tile-sheet and OBJ ordering rules.
+Gaia retains its dedicated map and streamed-graphics adapters. The execution
+path remains the interpreter; this release does not enable static recompilation.
+Full maps are qualified against the live native VRAM ring, and unsupported
+layouts fall back to the original view while keeping the top HUD.
+
+For a local development audit, set `IOG_RENDER_AUDIT_DIR` to an existing private
+directory. The desktop host saves native, expanded and independently reconstructed
+fields every 30 frames. Reconstruction omits BG3 UI, so compare a qualified world
+region separately from HUD/dialogue. This verifies added-world rendering without
+hiding it beneath a copied native field. Private images and game data must not
+be committed. Shared-rule checks: `cc -std=c11 -Isrc/flippad tools/test_portrait_rules.c -o /tmp/portrait-rules && /tmp/portrait-rules`.

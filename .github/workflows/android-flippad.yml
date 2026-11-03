@@ -21,6 +21,8 @@ jobs:
       - uses: android-actions/setup-android@v3
         with:
           packages: platform-tools
+      - name: Presentation rules
+        run: cc -std=c11 -Wall -Wextra -Werror -Isrc/flippad tools/test_portrait_rules.c -o /tmp/portrait-rules && /tmp/portrait-rules
       - name: Install Android tools
         run: sdkmanager 'platforms;android-37.0' 'build-tools;37.0.0' 'ndk;28.2.13676358' 'cmake;3.31.6'
       - name: Build without private game files

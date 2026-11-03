@@ -67,6 +67,7 @@ static void IogPrepareFrame(int drawable_w, int drawable_h, int *frame_w, int *f
 static void IogBeginSimFrame(unsigned number)
 {
     (void)number;
+    IogPortraitResetFrame();
     IogWidescreenBeginFrame();
 #ifdef __ANDROID__
     IogPortraitBegin();
@@ -112,6 +113,9 @@ static void IogEndSimFrame(const uint8_t *field, unsigned number)
 {
     (void)field;
     (void)number;
+#ifndef __ANDROID__
+    IogPortraitAudit(field,number);
+#endif
 #ifndef IOG_CHINESE_ROM
     IogCompanionGrabMenu();
     IogInventoryOverlay();
