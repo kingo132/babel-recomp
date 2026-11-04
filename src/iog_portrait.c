@@ -218,7 +218,7 @@ const uint32_t *IogPortraitCompose(const uint32_t*native,int nw,int nh,int dw,in
  if(!g_snes||!g_ppu||nw!=256||nh!=224||dw<=0||dh<=0)return NULL;
  /* Auto-fit uses whole physical pixels. The extra columns are real world
     pixels, avoiding the 4/5-pixel cadence of nearest-neighbour 1080/256. */
- float scale=atomic_load(&zoom);if(scale<=0)scale=fmaxf(1,floorf((float)dw/256));
+ float scale=IogPortraitDrawScale(dw,dh);
  int w=(int)ceilf(dw/scale),h=(int)ceilf(dh/scale);
  if(w<128)w=128;if(w>MAX_W)w=MAX_W;if(h<224)h=224;if(h>MAX_H)h=MAX_H;
  int left=(w-256)/2,top=(h-224)/2;
@@ -295,7 +295,11 @@ void IogPortraitBegin(void){
  }
 }
 
-float IogPortraitDrawScale(int w){float z=atomic_load(&zoom);return z>0?z:fmaxf(1,floorf(w/256.0f));}
+float IogPortraitDrawScale(int w,int h){
+ float z=atomic_load(&zoom);if(z<=0)z=fmaxf(1,floorf(w/256.0f));
+ if(w>h)z=fminf(fmaxf(z,ceilf(w/(float)MAX_W)),fmaxf(1,floorf(h/224.0f)));
+ return z;
+}
 
 /* Development-only reconstruction audit. Repaint the native field through the
  * same path as the added world, so retaining native pixels cannot hide errors. */

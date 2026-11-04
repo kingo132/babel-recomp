@@ -555,7 +555,7 @@ static void OpenGLRenderer_BeginDraw(int width, int height, uint8 **pixels, int 
 #ifdef __ANDROID__
 extern const uint32_t *IogPortraitCompose(const uint32_t*,int,int,int,int,int*,int*);
 extern int IogPortraitFilter(void);
-extern float IogPortraitDrawScale(int);
+extern float IogPortraitDrawScale(int,int);
 extern const uint32_t *FlipPadFilter(const uint32_t*,int,int,int,int*,int*);
 #endif
 static void OpenGLRenderer_EndDraw(void) {
@@ -582,7 +582,7 @@ static void OpenGLRenderer_EndDraw(void) {
 #ifdef __ANDROID__
   if(portrait){
     int f=IogPortraitFilter();f=(f==2||f==3)?f:1;
-    float s=IogPortraitDrawScale(drawable_width)/f;
+    float s=IogPortraitDrawScale(drawable_width,drawable_height)/f;
     viewport.width=(int)(g_draw_width*s+.5f);viewport.height=(int)(g_draw_height*s+.5f);
     viewport.x=(drawable_width-viewport.width)/2;viewport.y=drawable_height-viewport.height;
   }

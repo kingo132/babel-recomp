@@ -45,7 +45,7 @@ public class BabelActivity extends SDLActivity implements InputManager.InputDevi
         if(Build.VERSION.SDK_INT>=30)getWindow().setDecorFitsSystemWindows(false);
         getWindow().setStatusBarColor(Color.TRANSPARENT);getWindow().setNavigationBarColor(Color.BLACK);
         if(Build.VERSION.SDK_INT>=26)mSurface.setDefaultFocusHighlightEnabled(false);
-        mSurface.setStateListAnimator(null);setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+        mSurface.setStateListAnimator(null);applyControllerOrientation();
         ViewGroup parent=(ViewGroup)mLayout.getParent();if(parent!=null)parent.removeView(mLayout);
         root=new FrameLayout(this);root.setBackgroundColor(Color.BLACK);root.addView(mLayout,new FrameLayout.LayoutParams(-1,-1));setContentView(root);
         root.addOnLayoutChangeListener((v,l,t,r,b,ol,ot,or,ob)->layoutGame());
@@ -59,13 +59,17 @@ public class BabelActivity extends SDLActivity implements InputManager.InputDevi
         else getWindow().getDecorView().setSystemUiVisibility(5894|1024|512);
     }
     @Override public void onWindowFocusChanged(boolean focus){super.onWindowFocusChanged(focus);if(root==null)return;if(focus)immersive();else clearButtons();}
-    @Override public void setOrientationBis(int w,int h,boolean resizable,String hint){setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);}
+    @Override public void setOrientationBis(int w,int h,boolean resizable,String hint){applyControllerOrientation();}
     @Override protected void onPause(){if(!mBrokenLibraries){clearButtons();nativeSuspend();}super.onPause();}
     @Override protected void onDestroy(){if(Build.VERSION.SDK_INT>=33&&backCallback!=null)getOnBackInvokedDispatcher().unregisterOnBackInvokedCallback(backCallback);if(inputs!=null)inputs.unregisterInputDeviceListener(this);super.onDestroy();}
     @Override public void onBackPressed(){if(assistant)hideAssistant();else showAssistant();}
     public void onInputDeviceAdded(int id){scanControllers();}
     public void onInputDeviceChanged(int id){scanControllers();}
     public void onInputDeviceRemoved(int id){scanControllers();}
+    void applyControllerOrientation(){
+        int orientation=controller&&!flipPad?ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE:ActivityInfo.SCREEN_ORIENTATION_PORTRAIT;
+        if(getRequestedOrientation()!=orientation)setRequestedOrientation(orientation);
+    }
     int dp(float n){return Math.round(n*getResources().getDisplayMetrics().density);}
     int safe(){int w=root.getWidth(),h=root.getHeight();return flipPad?Math.min(h,Math.round(h*2f/3f-50*w/1080f)):Math.max(1,h-(controller?0:dp(62)));}
     int inset(){WindowInsets wi=root.getRootWindowInsets();return wi!=null&&Build.VERSION.SDK_INT>=28&&wi.getDisplayCutout()!=null?wi.getDisplayCutout().getSafeInsetTop():dp(24);}
@@ -74,14 +78,23 @@ public class BabelActivity extends SDLActivity implements InputManager.InputDevi
         int surfaceHeight=flipPad?Math.min(h,safe()+Math.round(80*w/1080f)):safe();
         FrameLayout.LayoutParams p=(FrameLayout.LayoutParams)mLayout.getLayoutParams();if(p.height!=surfaceHeight||p.topMargin!=0){p.height=surfaceHeight;p.topMargin=0;mLayout.setLayoutParams(p);}
         if(footer!=null){FrameLayout.LayoutParams f=new FrameLayout.LayoutParams(-1,dp(62),Gravity.BOTTOM);footer.setLayoutParams(f);}
-        nativeSettings(speed,zoom,filter,safe(),flipPad);
+        float effectiveZoom=zoom;
+        if(controller&&!flipPad&&w>surfaceHeight)
+            effectiveZoom=ControllerLayout.landscapeScale(w,surfaceHeight,zoom>0?zoom:Math.max(1,(float)Math.floor(w/256f)),true);
+        nativeSettings(speed,effectiveZoom,filter,safe(),flipPad);
         if(notice!=null){FrameLayout.LayoutParams n=new FrameLayout.LayoutParams(-2,-2);n.leftMargin=dp(8);n.topMargin=Math.max(inset()+dp(3),dp(25));notice.setLayoutParams(n);notice.bringToFront();}
-        if(card!=null){FrameLayout.LayoutParams c=new FrameLayout.LayoutParams(w-dp(16),Math.max(dp(280),safe()-inset()-dp(14)));c.leftMargin=dp(8);c.topMargin=inset()+dp(6);card.setLayoutParams(c);card.bringToFront();}
+        if(card!=null){FrameLayout.LayoutParams c=new FrameLayout.LayoutParams(w-dp(16),Math.max(1,safe()-inset()-dp(14)));c.leftMargin=dp(8);c.topMargin=inset()+dp(6);card.setLayoutParams(c);card.bringToFront();}
     }
     void scanControllers(){
-        flipPad=false;controller=false;
-        for(int id:InputDevice.getDeviceIds()){InputDevice d=InputDevice.getDevice(id);if(d==null||d.isVirtual())continue;int s=d.getSources();boolean pad=(s&InputDevice.SOURCE_GAMEPAD)==InputDevice.SOURCE_GAMEPAD||(s&InputDevice.SOURCE_JOYSTICK)==InputDevice.SOURCE_JOYSTICK;
-            boolean flip=d.getVendorId()==0x2dc8&&d.getProductId()==0x3022||d.getName().toLowerCase(Locale.ROOT).contains("flippad");flipPad|=flip;controller|=pad||flip;}
+        int mode=ControllerLayout.TOUCH;
+        for(int id:InputDevice.getDeviceIds()){
+            InputDevice d=InputDevice.getDevice(id);if(d==null)continue;
+            int sources=d.getSources();boolean gamepad=(sources&InputDevice.SOURCE_GAMEPAD)==InputDevice.SOURCE_GAMEPAD||(sources&InputDevice.SOURCE_JOYSTICK)==InputDevice.SOURCE_JOYSTICK;
+            mode=Math.max(mode,ControllerLayout.classify(d.isVirtual(),gamepad,d.getVendorId(),d.getProductId()));
+        }
+        flipPad=mode==ControllerLayout.FLIPPAD;controller=mode!=ControllerLayout.TOUCH;
+        applyControllerOrientation();
+        Log.i(TAG,"controller layout="+mode+" flipPad="+flipPad+" controller="+controller+" orientation="+getRequestedOrientation());
         rebuildFooter();
     }
     void rebuildFooter(){

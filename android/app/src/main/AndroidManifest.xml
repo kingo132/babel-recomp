@@ -79,7 +79,7 @@
 
         <meta-data android:name="SDL_ENV.SDL_JOYSTICK_HIDAPI" android:value="0" />
         <activity android:name="com.mr0ta.babelrecomp.BabelActivity"
-            android:screenOrientation="portrait"
+            android:screenOrientation="fullSensor"
             android:label="@string/app_name"
             android:alwaysRetainTaskState="true"
             android:launchMode="singleInstance"

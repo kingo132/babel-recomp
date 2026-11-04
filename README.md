@@ -460,3 +460,12 @@ fields every 30 frames. Reconstruction omits BG3 UI, so compare a qualified worl
 region separately from HUD/dialogue. This verifies added-world rendering without
 hiding it beneath a copied native field. Private images and game data must not
 be committed. Shared-rule checks: `cc -std=c11 -Isrc/flippad tools/test_portrait_rules.c -o /tmp/portrait-rules && /tmp/portrait-rules`.
+
+
+## 0.3.4 FlipPad 设备识别与横屏
+
+只有非虚拟、具有游戏手柄/摇杆输入源、硬件 ID 为 `2dc8:3022` 的 FlipPad 才启用弧形底边和专用竖屏布局。消费按键接口或普通手柄不能触发这个布局。
+
+Backbone 等普通手柄使用完整屏幕，不显示虚拟按键；接入时进入横屏，左右横屏方向跟随传感器。拔掉所有手柄后恢复竖屏和底部虚拟按键。界面和原始 256×224 游戏区域在横屏时仍完整可见，地图在四周继续扩展。
+
+`tools/verify_controller_layout.py` 检查实际 Backbone ID `358a:0304`、FlipPad、消费接口和无手柄状态，以及 Pixel 9 横屏的缩放边界。实体 Backbone 主屏测试与模拟 FlipPad 插拔测试分别记录，模拟插拔不能代替实体 FlipPad 手感验收。
